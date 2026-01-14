@@ -33,13 +33,31 @@ exports.ajouterUser = async (req, res) => {
       });
     }
     
-    res.status(201).json({ 
-      success: true, 
-      token, 
+    res.status(201).json({
+      success: true,
+      token,
       data: user,
-      message: 'Utilisateur créé avec succès ! Un email de confirmation a été envoyé.' 
+      message: 'Utilisateur créé avec succès ! Un email de confirmation a été envoyé.'
     });
   } catch (error) {
+    // Gestion des erreurs de validation Mongoose
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: error,
+        message: Object.values(error.errors).map(e => e.message).join(', ')
+      });
+    }
+
+    // Gestion des erreurs de duplication (email unique)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cet email est déjà utilisé'
+      });
+    }
+
+    // Autres erreurs
     res.status(400).json({ success: false, error: error.message });
   }
 };
@@ -47,29 +65,47 @@ exports.ajouterUser = async (req, res) => {
 // Modifier un utilisateur
 exports.updateUser = async (req, res) => {
   const { nom, prenom, email, num, sexe, mdp, statu, role, cotisation } = req.body;
-  
+
   try {
     const user = await User.findById(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'Utilisateur n\'existe pas' });
     }
-    
+
     // modification
     if (nom) user.nom = nom;
     if (prenom) user.prenom = prenom;
     if (email) user.email = email;
     if (num) user.num = num;
-    if (role) user.nas = nas;
+    if (role) user.role = role;
     if (sexe) user.sexe = sexe;
     if (mdp) user.mdp = mdp; // This will trigger the pre-save hook to hash the password
     if (statu) user.statu = statu;
     if (cotisation) user.cotisation = cotisation;
-  
-    
+
+
     await user.save();
     res.status(200).json({ success: true, data: user });
   } catch (error) {
+    // Gestion des erreurs de validation Mongoose
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: error,
+        message: Object.values(error.errors).map(e => e.message).join(', ')
+      });
+    }
+
+    // Gestion des erreurs de duplication (email unique)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cet email est déjà utilisé'
+      });
+    }
+
+    // Autres erreurs
     res.status(400).json({ success: false, error: error.message });
   }
 };

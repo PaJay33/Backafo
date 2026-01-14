@@ -10,9 +10,20 @@ const cors = require('cors'); // Ajout de CORS mod
 const app = express();
 const port = 5002;
 
-// Middleware
+// Middleware CORS - Configuration pour production et développement
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://fontafo.vercel.app',
+    'https://backafo.onrender.com'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
-app.use(cors()); //mod
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://dieyeyatma33:allahisone33@clusteryat.0fus6x1.mongodb.net/afo');
