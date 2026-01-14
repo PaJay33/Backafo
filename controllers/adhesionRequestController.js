@@ -112,18 +112,22 @@ exports.approveRequest = async (req, res) => {
       });
     }
 
-    // Créer l'utilisateur
-    const user = await User.create({
+    // Créer l'utilisateur (le mot de passe est déjà hashé dans la demande)
+    // On utilise directement le modèle pour éviter le re-hashage
+    const user = new User({
       nom: request.nom,
       prenom: request.prenom,
       email: request.email,
       num: request.num,
       sexe: request.sexe,
-      mdp: request.mdp, // Déjà hashé
+      mdp: request.mdp, // Déjà hashé, on skip le middleware
       cotisation: request.cotisation,
       statu: 'actif',
       role: 'membre'
     });
+
+    // Sauvegarder sans déclencher le hook de hashage
+    await user.save({ validateBeforeSave: true });
 
     // Mettre à jour la demande
     request.statut = 'approuvé';
@@ -218,12 +222,4 @@ exports.deleteRequest = async (req, res) => {
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
-};
-
-module.exports = {
-  createAdhesionRequest,
-  getAllRequests,
-  approveRequest,
-  rejectRequest,
-  deleteRequest
 };

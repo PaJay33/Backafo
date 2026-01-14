@@ -60,6 +60,12 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified("mdp")) {
     return next();
   }
+
+  // Vérifier si le mot de passe est déjà hashé (bcrypt hashes start with $2b$ or $2a$)
+  if (this.mdp && this.mdp.startsWith('$2')) {
+    return next();
+  }
+
   this.mdp = await bcrypt.hash(this.mdp, 10);
   next();
 });
