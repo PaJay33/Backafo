@@ -32,10 +32,6 @@ mongoose.connect('mongodb+srv://dieyeyatma33:allahisone33@clusteryat.0fus6x1.mon
 const userRoutes = require('./routes/userRoutes');
 app.use('/users', userRoutes);
 
-// Routes des demandes d'adhésion
-const adhesionRequestRoutes = require('./routes/adhesionRequestRoutes');
-app.use('/adhesion-requests', adhesionRequestRoutes);
-
 // cotisation
 const cotisationRoutes = require('./routes/cotisationRoutes');
 app.use('/cotisations', cotisationRoutes);
