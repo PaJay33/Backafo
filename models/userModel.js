@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     required: [true, "role obligatoire!"],
-    enum: ["membre", "bureau", "Admin"],
+    enum: ["membre", "bureau", "Admin", "finance"],
   },
   cotisation: {
     type: String,
