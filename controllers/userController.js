@@ -412,12 +412,12 @@ exports.resetPassword = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
-    
+
     if (!user) {
-      return res.status(404).json({ success: false, message: 'Utilisateur existe pas' });
+      return res.status(404).json({ success: false, message: 'Utilisateur n\'existe pas' });
     }
-    
-    res.status(204).json({ success: true, data: {} });
+
+    res.status(200).json({ success: true, message: 'Utilisateur supprimé avec succès', data: {} });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }

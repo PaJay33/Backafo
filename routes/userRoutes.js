@@ -13,7 +13,7 @@ router.post('/login', userController.connUser);
 router.get('/all', userController.getAllUser);
 router.get('/:id', protect, userController.getUserById); // Protected route
 router.put('/:id', protect, userController.updateUser); // Protected route
-router.delete('/:id', userController.deleteUser); // Protected route and only admin
+router.delete('/:id', protect, isAdmin, userController.deleteUser); // Protected route - Admin only
 
 // Routes de gestion de mot de passe
 router.put('/:id/change-password', protect, userController.changePassword);
