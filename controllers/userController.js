@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const Departement = require('../models/userModel');
 const { sendConfirmationEmail, sendResetCodeEmail } = require('../config/emailConfig');
+const { createLog } = require('./actionLogController');
 
 
 
@@ -32,7 +33,29 @@ exports.ajouterUser = async (req, res) => {
         console.error('Email non envoyé mais utilisateur créé:', err);
       });
     }
-    
+
+    // Log de l'action si c'est un admin/finance qui ajoute
+    if (req.user) {
+      await createLog({
+        userId: req.user._id,
+        userEmail: req.user.email,
+        userName: `${req.user.prenom} ${req.user.nom}`,
+        userRole: req.user.role,
+        action: 'MEMBRE_AJOUTE',
+        targetType: 'USER',
+        targetId: user._id.toString(),
+        targetName: `${prenom} ${nom}`,
+        description: `Ajout du membre ${prenom} ${nom} (${email}) avec le rôle ${role}`,
+        details: {
+          email,
+          role,
+          statu,
+          cotisation
+        },
+        ipAddress: req.ip
+      });
+    }
+
     res.status(201).json({
       success: true,
       token,
@@ -73,19 +96,73 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Utilisateur n\'existe pas' });
     }
 
-    // modification
-    if (nom) user.nom = nom;
-    if (prenom) user.prenom = prenom;
-    if (email) user.email = email;
-    if (num) user.num = num;
-    if (role) user.role = role;
-    if (sexe) user.sexe = sexe;
-    if (mdp) user.mdp = mdp; // This will trigger the pre-save hook to hash the password
-    if (statu) user.statu = statu;
-    if (cotisation) user.cotisation = cotisation;
+    // Sauvegarder les anciennes valeurs pour le log
+    const oldValues = {
+      nom: user.nom,
+      prenom: user.prenom,
+      email: user.email,
+      role: user.role,
+      statu: user.statu
+    };
 
+    // modification
+    const changes = [];
+    if (nom && nom !== user.nom) { user.nom = nom; changes.push('nom'); }
+    if (prenom && prenom !== user.prenom) { user.prenom = prenom; changes.push('prenom'); }
+    if (email && email !== user.email) { user.email = email; changes.push('email'); }
+    if (num && num !== user.num) { user.num = num; changes.push('num'); }
+    if (role && role !== user.role) { user.role = role; changes.push('role'); }
+    if (sexe && sexe !== user.sexe) { user.sexe = sexe; changes.push('sexe'); }
+    if (mdp) { user.mdp = mdp; changes.push('mdp'); } // This will trigger the pre-save hook to hash the password
+    if (statu && statu !== user.statu) { user.statu = statu; changes.push('statu'); }
+    if (cotisation && cotisation !== user.cotisation) { user.cotisation = cotisation; changes.push('cotisation'); }
 
     await user.save();
+
+    // Log de l'action
+    if (req.user && changes.length > 0) {
+      let action = 'MEMBRE_MODIFIE';
+      let description = `Modification du membre ${user.prenom} ${user.nom}`;
+
+      // Déterminer l'action spécifique selon les changements
+      if (changes.includes('statu')) {
+        if (statu === 'suspendu') {
+          action = 'MEMBRE_SUSPENDU';
+          description = `Suspension du membre ${user.prenom} ${user.nom}`;
+        } else if (statu === 'bani') {
+          action = 'MEMBRE_BANNI';
+          description = `Bannissement du membre ${user.prenom} ${user.nom}`;
+        } else if (statu === 'actif' && oldValues.statu !== 'actif') {
+          action = 'MEMBRE_REACTIVE';
+          description = `Réactivation du membre ${user.prenom} ${user.nom}`;
+        }
+      }
+
+      await createLog({
+        userId: req.user._id,
+        userEmail: req.user.email,
+        userName: `${req.user.prenom} ${req.user.nom}`,
+        userRole: req.user.role,
+        action,
+        targetType: 'USER',
+        targetId: user._id.toString(),
+        targetName: `${user.prenom} ${user.nom}`,
+        description: `${description} - Champs modifiés: ${changes.join(', ')}`,
+        details: {
+          champsModifies: changes,
+          anciennesValeurs: oldValues,
+          nouvellesValeurs: {
+            nom: user.nom,
+            prenom: user.prenom,
+            email: user.email,
+            role: user.role,
+            statu: user.statu
+          }
+        },
+        ipAddress: req.ip
+      });
+    }
+
     res.status(200).json({ success: true, data: user });
   } catch (error) {
     // Gestion des erreurs de validation Mongoose
@@ -411,11 +488,38 @@ exports.resetPassword = async (req, res) => {
 // Supprimer un utilisateur
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    const user = await User.findById(req.params.id);
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'Utilisateur n\'existe pas' });
     }
+
+    const userInfo = {
+      nom: user.nom,
+      prenom: user.prenom,
+      email: user.email,
+      role: user.role
+    };
+
+    await User.findByIdAndDelete(req.params.id);
+
+    // Log de l'action
+    await createLog({
+      userId: req.user._id,
+      userEmail: req.user.email,
+      userName: `${req.user.prenom} ${req.user.nom}`,
+      userRole: req.user.role,
+      action: 'MEMBRE_SUPPRIME',
+      targetType: 'USER',
+      targetId: req.params.id,
+      targetName: `${userInfo.prenom} ${userInfo.nom}`,
+      description: `Suppression du membre ${userInfo.prenom} ${userInfo.nom} (${userInfo.email})`,
+      details: {
+        email: userInfo.email,
+        role: userInfo.role
+      },
+      ipAddress: req.ip
+    });
 
     res.status(200).json({ success: true, message: 'Utilisateur supprimé avec succès', data: {} });
   } catch (error) {

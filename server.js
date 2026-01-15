@@ -36,6 +36,10 @@ app.use('/users', userRoutes);
 const cotisationRoutes = require('./routes/cotisationRoutes');
 app.use('/cotisations', cotisationRoutes);
 
+// logs d'actions
+const actionLogRoutes = require('./routes/actionLogRoutes');
+app.use('/logs', actionLogRoutes);
+
 
 app.listen(port, () => {
   console.log(`User service running on port ${port}`);
