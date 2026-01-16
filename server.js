@@ -15,7 +15,11 @@ const corsOptions = {
   origin: [
     'http://localhost:3000',
     'https://fontafo.vercel.app',
-    'https://backafo.onrender.com'
+    'https://backafo.onrender.com',
+    'https://afosenegal.com',
+    'https://www.afosenegal.com',
+    'https://afosenegal.org',
+    'https://www.afosenegal.org'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
