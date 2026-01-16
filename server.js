@@ -26,7 +26,7 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // MongoDB connection
-mongoose.connect('mongodb+srv://dieyeyatma33:allahisone33@clusteryat.0fus6x1.mongodb.net/afo');
+mongoose.connect('mongodb+srv://allforonesen_db_user:WWUYCtzEKedVrRk3@cluster0.z7bvzao.mongodb.net/afo');
 
 // Routes
 const userRoutes = require('./routes/userRoutes');

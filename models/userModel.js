@@ -17,8 +17,8 @@ const userSchema = new mongoose.Schema({
   num: {
     type: String,
     required: [true, "Le numéro de téléphone est obligatoire!"],
-    minLength: [10, "Le numéro doit avoir au moins 10 chiffres!"],
-    maxLength: [12, "Le numéro doit avoir max 11 chiffres!"],
+    minLength: [9, "Le numéro doit avoir au moins 9 chiffres!"],
+    maxLength: [14, "Le numéro doit avoir max 15 chiffres!"],
   },
   sexe: {
     type: String,
