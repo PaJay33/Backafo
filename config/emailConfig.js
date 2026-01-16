@@ -6,7 +6,11 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
-  }
+  },
+  // Ajouter un timeout pour éviter que ça pende indéfiniment
+  connectionTimeout: 10000, // 10 secondes
+  greetingTimeout: 10000,
+  socketTimeout: 15000 // 15 secondes
 });
 
 const sendConfirmationEmail = async (email, nom, prenom) => {
@@ -158,11 +162,20 @@ const sendResetCodeEmail = async (email, nom, resetCode) => {
   };
 
   try {
+    console.log('📧 Tentative d\'envoi d\'email à:', email);
+    console.log('📧 Utilisation du compte:', process.env.EMAIL_USER);
+
     await transporter.sendMail(mailOptions);
+
     console.log('✅ Code de réinitialisation envoyé à:', email);
     return true;
   } catch (error) {
-    console.error('❌ Erreur envoi email:', error);
+    console.error('❌ Erreur envoi email:', error.message);
+    console.error('❌ Détails:', {
+      code: error.code,
+      command: error.command,
+      response: error.response
+    });
     return false;
   }
 };
