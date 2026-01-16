@@ -30,7 +30,17 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // MongoDB connection
-mongoose.connect('mongodb+srv://allforonesen_db_user:WWUYCtzEKedVrRk3@cluster0.z7bvzao.mongodb.net/afo');
+if (!process.env.MONGODB_URI) {
+  console.error('❌ ERREUR: MONGODB_URI n\'est pas défini dans les variables d\'environnement');
+  process.exit(1);
+}
+
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 // Routes
 const userRoutes = require('./routes/userRoutes');

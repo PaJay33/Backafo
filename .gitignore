@@ -1,0 +1,21 @@
+# Variables d'environnement (CONTIENNENT DES MOTS DE PASSE - NE JAMAIS COMMIT)
+.env
+config/config.env
+.env.local
+.env.*.local
+
+# Dépendances
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Système
+.DS_Store
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.iml
